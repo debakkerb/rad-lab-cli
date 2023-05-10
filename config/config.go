@@ -42,19 +42,28 @@ func (c Parameter) String() string {
 	}
 }
 
-var allowedConfigParameters = []string{"rad-lab-dir", "region", "billing-account", "organization", "zone", "admin-project", "admin-bucket"}
+type configParameter struct {
+	description string
+	value       string
+}
+
+var parameters map[string]*configParameter
 
 func init() {
 	configDirectory, err := checkConfigDirectory()
 	if err != nil {
 		log.Fatalf("Error while creating configuration file: %v", err)
 	}
+	readConfiguration(configDirectory)
+	initParameters()
+}
 
+func readConfiguration(configDirectory string) {
 	viper.AddConfigPath(configDirectory)
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 
-	err = viper.ReadInConfig()
+	err := viper.ReadInConfig()
 	if err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			err = viper.SafeWriteConfig()
@@ -62,6 +71,25 @@ func init() {
 				log.Fatalf("Error while creating configuration file: %v", err)
 			}
 		}
+	}
+}
+
+func initParameters() {
+	parameters = make(map[string]*configParameter)
+
+	addParameter(ParameterBillingAccount, "Billing account ID that will be attached to all projects related to RAD Lab.")
+	addParameter(ParameterDirectory, "Local directory where the RAD Lab directory has been cloned.")
+	addParameter(ParameterRegion, "Default region for all resources deployed by RAD Lab.")
+	addParameter(ParameterZone, "Default zone for all resources deployed by RAD Lab.")
+	addParameter(ParameterOrganization, "Organization ID where all RAD Lab projects will be created.")
+	addParameter(ParameterAdminBucket, "Name of the Google Cloud Storage bucket that will store all the RAD Lab state files.")
+	addParameter(ParameterAdminProject, "Project ID which is the Admin project for all RAD Lab resources.")
+}
+
+func addParameter(parameter Parameter, description string) {
+	parameters[parameter.String()] = &configParameter{
+		description: description,
+		value:       fmt.Sprintf("%s", viper.Get(parameter.String())),
 	}
 }
 
@@ -77,6 +105,16 @@ func checkConfigDirectory() (string, error) {
 	return configDir, err
 }
 
+func getConfigParameterNamesAsString(delimiter string) string {
+	keys := make([]string, len(parameters))
+	i := 0
+	for k := range parameters {
+		keys[i] = k
+		i++
+	}
+	return strings.Join(keys, delimiter)
+}
+
 func SetConfigParameter(name, value string) {
 	if isAllowed(name) {
 		viper.Set(name, value)
@@ -86,13 +124,13 @@ func SetConfigParameter(name, value string) {
 			os.Exit(1)
 		}
 	} else {
-		fmt.Printf("Error while writing config parameter %s, only these values are allowed: %s", name, strings.Join(allowedConfigParameters[:], ", "))
+		fmt.Printf("Error while writing config parameter %s, only these values are allowed: %s", name, getConfigParameterNamesAsString(","))
 	}
 }
 
 func isAllowed(name string) bool {
-	for _, v := range allowedConfigParameters {
-		if v == name {
+	for key, _ := range parameters {
+		if key == name {
 			return true
 		}
 	}
@@ -108,4 +146,12 @@ func Show() {
 	for key, value := range settings {
 		fmt.Printf("%s: %s\n", key, value)
 	}
+}
+
+func Usage() string {
+	var output strings.Builder
+	for k, v := range parameters {
+		output.WriteString(fmt.Sprintf("%s: %s\n", k, v.description))
+	}
+	return output.String()
 }

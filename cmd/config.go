@@ -24,7 +24,7 @@ import (
 var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Manage local RAD Lab CLI configuration parameters",
-	Long:  "Initialise and update RAD Lab configuration parameters through this command.",
+	Long:  "Initialise and update RAD Lab configuration parameters through this command.\n\n\n" + config.Usage(),
 	Run:   nil,
 }
 
