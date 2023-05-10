@@ -9,15 +9,40 @@ import (
 	"strings"
 )
 
-var allowedConfigParameters = []string{"region", "billing-account", "organization", "zone", "admin-project", "admin-bucket"}
+type Parameter int8
 
-type LocalConfiguration struct {
-	ParentFolderID   string
-	BillingAccountID string
-	OrganizationID   string
-	Region           string
-	Zone             string
+const (
+	ParameterRegion Parameter = iota
+	ParameterBillingAccount
+	ParameterOrganization
+	ParameterZone
+	ParameterDirectory
+	ParameterAdminProject
+	ParameterAdminBucket
+)
+
+func (c Parameter) String() string {
+	switch c {
+	case ParameterRegion:
+		return "region"
+	case ParameterBillingAccount:
+		return "billing-account"
+	case ParameterOrganization:
+		return "organization"
+	case ParameterZone:
+		return "zone"
+	case ParameterDirectory:
+		return "rad-lab-dir"
+	case ParameterAdminProject:
+		return "admin-project"
+	case ParameterAdminBucket:
+		return "admin-bucket"
+	default:
+		return ""
+	}
 }
+
+var allowedConfigParameters = []string{"rad-lab-dir", "region", "billing-account", "organization", "zone", "admin-project", "admin-bucket"}
 
 func init() {
 	configDirectory, err := checkConfigDirectory()
@@ -72,4 +97,8 @@ func isAllowed(name string) bool {
 		}
 	}
 	return false
+}
+
+func Get(name Parameter) string {
+	return fmt.Sprintf("%s", viper.Get(name.String()))
 }
