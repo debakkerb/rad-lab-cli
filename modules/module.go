@@ -1,11 +1,8 @@
 package modules
 
-import (
-	"fmt"
-	"github.com/debakkerb/rad-lab-cli/config"
-)
+type Module struct {
+	Name string
+}
 
-func List() {
-	radlabDirectory := config.Get(config.ParameterDirectory)
-	fmt.Println(radlabDirectory)
+func Create(moduleName string) {
 }
