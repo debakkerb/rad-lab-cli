@@ -1,5 +1,14 @@
 package admin
 
+import (
+	billing "cloud.google.com/go/billing/apiv1"
+	"cloud.google.com/go/billing/apiv1/billingpb"
+	resourcemanager "cloud.google.com/go/resourcemanager/apiv3"
+	resourcemanagerpb "cloud.google.com/go/resourcemanager/apiv3/resourcemanagerpb"
+	"context"
+	"log"
+)
+
 /**
  * Copyright 2023 Google LLC
  *
@@ -21,4 +30,45 @@ type AdminProject struct {
 	ProjectID     string
 	ProjectNumber string
 	ParentID      string
+}
+
+func (ap *AdminProject) Create() error {
+	ctx := context.Background()
+	client, err := resourcemanager.NewProjectsClient(ctx)
+	if err != nil {
+		log.Fatal("Error while trying to create a project", err)
+	}
+	defer client.Close()
+
+	projectDetails := &resourcemanagerpb.Project{
+		Name:      "test-project",
+		Parent:    "parent",
+		ProjectId: "test-project-id",
+	}
+
+	request := &resourcemanagerpb.CreateProjectRequest{
+		Project: projectDetails,
+	}
+
+	_, err = client.CreateProject(ctx, request)
+	if err != nil {
+		return err
+	}
+
+	billingClient, err := billing.NewCloudBillingClient(ctx)
+	if err != nil {
+		return err
+	}
+	defer billingClient.Close()
+
+	req := &billingpb.UpdateProjectBillingInfoRequest{
+		Name: "project-name",
+	}
+
+	_, err = billingClient.UpdateProjectBillingInfo(ctx, req)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
