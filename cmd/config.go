@@ -49,6 +49,9 @@ var showConfigCmd = &cobra.Command{
 	Use:   "show",
 	Short: "Show the local configuration.",
 	Long:  "Display all local parameters of the RAD Lab CLI configuration",
+	Run: func(cmd *cobra.Command, args []string) {
+		config.Show()
+	},
 }
 
 func init() {

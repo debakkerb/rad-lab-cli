@@ -102,3 +102,10 @@ func isAllowed(name string) bool {
 func Get(name Parameter) string {
 	return fmt.Sprintf("%s", viper.Get(name.String()))
 }
+
+func Show() {
+	settings := viper.AllSettings()
+	for key, value := range settings {
+		fmt.Printf("%s: %s\n", key, value)
+	}
+}

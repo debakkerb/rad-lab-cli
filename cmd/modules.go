@@ -1,6 +1,9 @@
 package cmd
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/debakkerb/rad-lab-cli/modules"
+	"github.com/spf13/cobra"
+)
 
 /**
  * Copyright 2023 Google LLC
@@ -26,7 +29,12 @@ var modulesCmd = &cobra.Command{
 }
 
 var listModulesCmd = &cobra.Command{
-	Use: "list",
+	Use:   "list",
+	Short: "List all RAD Lab modules",
+	Long:  "List all RAD Lab modules, incl. their status.",
+	Run: func(cmd *cobra.Command, args []string) {
+		modules.List()
+	},
 }
 
 var createModulesCmd = &cobra.Command{
