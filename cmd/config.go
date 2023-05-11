@@ -42,7 +42,8 @@ var setConfigCmd = &cobra.Command{
 	Long:  "Set a certain parameter in the local RAD Lab CLI configuration",
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
-		config.SetString(args[0], args[1])
+		err := config.SetString(args[0], args[1])
+		cobra.CheckErr(err)
 	},
 }
 

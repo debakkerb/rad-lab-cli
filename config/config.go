@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"github.com/spf13/viper"
 	"log"
@@ -20,6 +21,7 @@ const (
 	ParameterAdminProject
 	ParameterAdminBucket
 	ParameterDefaultProjectLabels
+	ParameterParentID
 )
 
 func (c Parameter) String() string {
@@ -29,7 +31,7 @@ func (c Parameter) String() string {
 	case ParameterRegion:
 		return "region"
 	case ParameterBillingAccount:
-		return "billing-account"
+		return "billing-account-id"
 	case ParameterOrganization:
 		return "organization"
 	case ParameterZone:
@@ -40,6 +42,8 @@ func (c Parameter) String() string {
 		return "admin-project"
 	case ParameterAdminBucket:
 		return "admin-bucket"
+	case ParameterParentID:
+		return "parent-id"
 	default:
 		return ""
 	}
@@ -88,6 +92,7 @@ func initParameters() {
 	addStringValue(ParameterAdminBucket, "Name of the Google Cloud Storage bucket that will store all the RAD Lab state files.")
 	addStringValue(ParameterAdminProject, "Project ID which is the Admin project for all RAD Lab resources.")
 	addStringValue(ParameterDefaultProjectLabels, "Default labels to add to all RAD Lab projects.")
+	addStringValue(ParameterParentID, "Default Parent ID where all RAD Lab resources will be created")
 }
 
 func addStringValue(parameter Parameter, description string) {
@@ -119,17 +124,17 @@ func getConfigParameterNamesAsString(delimiter string) string {
 	return strings.Join(keys, delimiter)
 }
 
-func SetString(name string, value interface{}) {
+func SetString(name string, value interface{}) error {
 	if isAllowed(name) {
 		viper.Set(name, value)
 		err := viper.WriteConfig()
 		if err != nil {
-			fmt.Println("Failed to write to the config file: ", err)
-			os.Exit(1)
+			return err
 		}
 	} else {
-		fmt.Printf("Error while writing config parameter %s, only these values are allowed: %s", name, getConfigParameterNamesAsString(","))
+		return errors.New(fmt.Sprintf("Error while writing config parameter %s, only these values are allowed: %s", name, getConfigParameterNamesAsString(", ")))
 	}
+	return nil
 }
 
 func isAllowed(name string) bool {
@@ -147,8 +152,12 @@ func Get(name Parameter) string {
 
 func Show() {
 	settings := viper.AllSettings()
-	for key, value := range settings {
-		fmt.Printf("%s: %s\n", key, value)
+	if len(settings) == 0 {
+		fmt.Println("No config parameters have been set.  Initialise the local configuration by running 'radlab config init'")
+	} else {
+		for key, value := range settings {
+			fmt.Printf("%s: %s\n", key, value)
+		}
 	}
 }
 

@@ -1,6 +1,9 @@
 package cmd
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/debakkerb/rad-lab-cli/admin"
+	"github.com/spf13/cobra"
+)
 
 /**
  * Copyright 2023 Google LLC
@@ -28,7 +31,19 @@ var adminProjectCmd = &cobra.Command{
 }
 
 var adminProjectCreateCmd = &cobra.Command{
-	Use: "create",
+	Use:   "create",
+	Short: "Create admin project.",
+	Long:  "Creates the RAD Lab admin project, where all Terraform state is stored.",
+	Run: func(cmd *cobra.Command, args []string) {
+		project := admin.AdminProject{
+			BillingAccountID: billingAccount,
+			ProjectID:        adminProjectID,
+			ParentID:         parentID,
+			ProjectName:      adminProjectID,
+		}
+		err := project.Create()
+		cobra.CheckErr(err)
+	},
 }
 
 var adminProjectShowCmd = &cobra.Command{

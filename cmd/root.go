@@ -21,10 +21,23 @@ import (
 	"os"
 )
 
+var (
+	billingAccount string
+	adminProjectID string
+	parentID       string
+)
+
 var rootCmd = &cobra.Command{
-	Use:   "radlab",
-	Short: "Manage Rad Lab deployments, incl. UI",
-	Long:  `Manage RAD Lab deployments on Google Cloud`,
+	Use:     "radlab",
+	Aliases: []string{"rl"},
+	Short:   "Manage Rad Lab deployments, incl. UI",
+	Long:    `Manage RAD Lab deployments on Google Cloud`,
+}
+
+func init() {
+	rootCmd.PersistentFlags().StringVarP(&adminProjectID, "project-id", "p", "", "Project ID of the admin project for RAD Lab.  When specified, will overwrite local configuration.")
+	rootCmd.PersistentFlags().StringVarP(&billingAccount, "billing-account-id", "b", "", "Billing account ID that will be added to all RAD Lab resources. When specified, will overwrite local configuration.")
+	rootCmd.PersistentFlags().StringVarP(&parentID, "parent-id", "a", "", "ID of the parent for all RAD Lab resources.  Should be specified as 'organizations.123456789' or 'folders/123456'. When specified, will overwrite local configuration.")
 }
 
 func Execute() {

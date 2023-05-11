@@ -4,9 +4,11 @@ import (
 	billing "cloud.google.com/go/billing/apiv1"
 	"cloud.google.com/go/billing/apiv1/billingpb"
 	resourcemanager "cloud.google.com/go/resourcemanager/apiv3"
-	resourcemanagerpb "cloud.google.com/go/resourcemanager/apiv3/resourcemanagerpb"
+	"cloud.google.com/go/resourcemanager/apiv3/resourcemanagerpb"
 	"context"
-	"log"
+	"errors"
+	"github.com/debakkerb/rad-lab-cli/config"
+	"google.golang.org/api/iterator"
 )
 
 /**
@@ -34,29 +36,60 @@ type AdminProject struct {
 }
 
 func (ap *AdminProject) Create() error {
-	ctx := context.Background()
-	client, err := resourcemanager.NewProjectsClient(ctx)
+	err := ap.checkPrerequisites()
 	if err != nil {
-		log.Fatal("Error while trying to create a project", err)
+		return err
 	}
-	defer client.Close()
+
+	ctx := context.Background()
+	projectClient, err := resourcemanager.NewProjectsClient(ctx)
+	if err != nil {
+		return err
+	}
+	defer projectClient.Close()
+
+	listProjectsRequest := &resourcemanagerpb.ListProjectsRequest{
+		Parent:      ap.ParentID,
+		ShowDeleted: true,
+	}
+
+	projectIterator := projectClient.ListProjects(ctx, listProjectsRequest)
+	for {
+		project, err := projectIterator.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		if project.ProjectId == ap.ProjectID {
+			if project.State == resourcemanagerpb.Project_DELETE_REQUESTED {
+				return errors.New("a project with this project id already exists, but is in the process of being deleted. please specify a different project id")
+			}
+
+			if project.State == resourcemanagerpb.Project_ACTIVE {
+				return errors.New("a project with this name already exists.  please specify a different project id")
+			}
+		}
+
+	}
 
 	projectDetails := &resourcemanagerpb.Project{
-		Name:      ap.ProjectName,
-		Parent:    ap.ParentID,
-		ProjectId: ap.ProjectID,
-
+		Parent:      ap.ParentID,
+		DisplayName: ap.ProjectID,
+		ProjectId:   ap.ProjectID,
 		Labels: map[string]string{
 			"created-by": "rad-lab-cli",
 			"function":   "rad-lab",
 		},
 	}
 
-	request := &resourcemanagerpb.CreateProjectRequest{
+	projectCreateRequest := &resourcemanagerpb.CreateProjectRequest{
 		Project: projectDetails,
 	}
 
-	_, err = client.CreateProject(ctx, request)
+	_, err = projectClient.CreateProject(ctx, projectCreateRequest)
 	if err != nil {
 		return err
 	}
@@ -67,13 +100,48 @@ func (ap *AdminProject) Create() error {
 	}
 	defer billingClient.Close()
 
-	req := &billingpb.UpdateProjectBillingInfoRequest{
-		Name: "project-name",
+	updateBillingInfoRequest := &billingpb.UpdateProjectBillingInfoRequest{
+		Name: ap.ProjectID,
 	}
 
-	_, err = billingClient.UpdateProjectBillingInfo(ctx, req)
-	if err != nil {
-		return err
+	//req := &billingpb.UpdateProjectBillingInfoRequest{
+	//	Name: "project-name",
+	//}
+	//
+	//_, err = billingClient.UpdateProjectBillingInfo(ctx, req)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	return nil
+}
+
+func (ap *AdminProject) checkPrerequisites() error {
+	if ap.ProjectID == "" {
+		defaultProjectID := config.Get(config.ParameterAdminProject)
+		if defaultProjectID != "" {
+			ap.ProjectID = defaultProjectID
+		} else {
+			return errors.New("error while creating Admin project, Project ID has to be either passed in as command flag or configured as part of the RAD Lab configuration ('radlab config set')")
+		}
+	}
+
+	if ap.ParentID == "" {
+		parentID := config.Get(config.ParameterParentID)
+		if parentID != "" {
+			ap.ParentID = parentID
+		} else {
+			return errors.New("error while creating Admin project, Parent ID has to be either passed in as command flag or configured as part of the RAD Lab configuration ('radlab config set')")
+		}
+	}
+
+	if ap.BillingAccountID == "" {
+		billingAccountID := config.Get(config.ParameterBillingAccount)
+		if billingAccountID != "" {
+			ap.BillingAccountID = billingAccountID
+		} else {
+			return errors.New("error while creating Admin project, Billing Account ID has to be either passed in as command flag or configured as part of the RAD Lab configuration ('radlab config set')")
+		}
 	}
 
 	return nil
