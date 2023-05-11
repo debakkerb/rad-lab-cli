@@ -37,6 +37,6 @@ vendor:
 ## build/api: build the cmd/api application
 .PHONY: build/cli
 build/cli:
-	@echo 'Building cmd/api...'
+	@echo 'Building cmd/cli...'
 	go build -ldflags="-s" -o=./bin/radlab ./
 	GOOS=linux GOARCH=amd64 go build -ldflags="-s" -o=./bin/linux_amd64/radlab ./

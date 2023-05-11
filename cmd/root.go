@@ -22,9 +22,10 @@ import (
 )
 
 var (
-	billingAccount string
-	adminProjectID string
-	parentID       string
+	billingAccount  string
+	adminProjectID  string
+	parentID        string
+	adminBucketName string
 )
 
 var rootCmd = &cobra.Command{
@@ -38,6 +39,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&adminProjectID, "project-id", "p", "", "Project ID of the admin project for RAD Lab.  When specified, will overwrite local configuration.")
 	rootCmd.PersistentFlags().StringVarP(&billingAccount, "billing-account-id", "b", "", "Billing account ID that will be added to all RAD Lab resources. When specified, will overwrite local configuration.")
 	rootCmd.PersistentFlags().StringVarP(&parentID, "parent-id", "a", "", "ID of the parent for all RAD Lab resources.  Should be specified as 'organizations.123456789' or 'folders/123456'. When specified, will overwrite local configuration.")
+	rootCmd.PersistentFlags().StringVarP(&adminBucketName, "bucket-name", "u", "", "Bucket name of the Admin project, where all Terraform state will be stored.")
 }
 
 func Execute() {
