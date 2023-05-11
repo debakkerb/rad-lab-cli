@@ -16,6 +16,7 @@ package admin
  * limitations under the License.
  */
 
-type Bucket struct {
-	BucketName string
+func CreateAdminBucket() error {
+
+	return nil
 }

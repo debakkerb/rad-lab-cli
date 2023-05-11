@@ -2,6 +2,7 @@ package admin
 
 import (
 	"github.com/debakkerb/rad-lab-cli/cloud"
+	"github.com/debakkerb/rad-lab-cli/config"
 )
 
 /**
@@ -21,6 +22,11 @@ import (
  */
 
 func CreateAdminProject(billingAccountID, adminProjectID, parentID string) error {
+	err := checkValues(billingAccountID, adminProjectID, parentID)
+	if err != nil {
+		return err
+	}
+
 	p := cloud.GoogleProject{
 		ProjectID:        adminProjectID,
 		BillingAccountID: billingAccountID,
@@ -29,4 +35,18 @@ func CreateAdminProject(billingAccountID, adminProjectID, parentID string) error
 	}
 
 	return p.Create()
+}
+
+func checkValues(billingAccountID, adminProjectID, parentID string) error {
+	if billingAccountID == "" {
+		billingAccountID = config.Get(config.ParameterBillingAccount)
+	}
+
+	if adminProjectID == "" {
+		adminProjectID = config.Get(config.ParameterAdminProject)
+	}
+
+	if parentID == "" {
+		parentId
+	}
 }

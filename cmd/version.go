@@ -34,7 +34,6 @@ var versionCmd = &cobra.Command{
 	Short: "Show the version number of the current installation",
 	Long:  "This is the version of the RAD Lab CLI tool you are running",
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Println("https://github.com/GoogleCloudPlatform/rad-lab")
 		log.Println("RAD Lab CLI version: " + Version)
 	},
 }
