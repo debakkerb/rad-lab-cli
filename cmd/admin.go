@@ -35,14 +35,7 @@ var adminProjectCreateCmd = &cobra.Command{
 	Short: "Create admin project.",
 	Long:  "Creates the RAD Lab admin project, where all Terraform state is stored.",
 	Run: func(cmd *cobra.Command, args []string) {
-		project := admin.AdminProject{
-			BillingAccountID: billingAccount,
-			ProjectID:        adminProjectID,
-			ParentID:         parentID,
-			ProjectName:      adminProjectID,
-		}
-		err := project.Create()
-		cobra.CheckErr(err)
+		cobra.CheckErr(admin.CreateAdminProject(billingAccount, adminProjectID, parentID))
 	},
 }
 
