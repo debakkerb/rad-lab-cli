@@ -26,10 +26,11 @@ import (
  */
 
 type AdminProject struct {
-	ProjectName   string
-	ProjectID     string
-	ProjectNumber string
-	ParentID      string
+	ProjectName      string
+	ProjectID        string
+	ProjectNumber    string
+	ParentID         string
+	BillingAccountID string
 }
 
 func (ap *AdminProject) Create() error {
@@ -41,9 +42,14 @@ func (ap *AdminProject) Create() error {
 	defer client.Close()
 
 	projectDetails := &resourcemanagerpb.Project{
-		Name:      "test-project",
-		Parent:    "parent",
-		ProjectId: "test-project-id",
+		Name:      ap.ProjectName,
+		Parent:    ap.ParentID,
+		ProjectId: ap.ProjectID,
+
+		Labels: map[string]string{
+			"created-by": "rad-lab-cli",
+			"function":   "rad-lab",
+		},
 	}
 
 	request := &resourcemanagerpb.CreateProjectRequest{
