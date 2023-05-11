@@ -19,10 +19,13 @@ const (
 	ParameterDirectory
 	ParameterAdminProject
 	ParameterAdminBucket
+	ParameterDefaultProjectLabels
 )
 
 func (c Parameter) String() string {
 	switch c {
+	case ParameterDefaultProjectLabels:
+		return "default-project-labels"
 	case ParameterRegion:
 		return "region"
 	case ParameterBillingAccount:
@@ -77,16 +80,17 @@ func readConfiguration(configDirectory string) {
 func initParameters() {
 	parameters = make(map[string]*configParameter)
 
-	addParameter(ParameterBillingAccount, "Billing account ID that will be attached to all projects related to RAD Lab.")
-	addParameter(ParameterDirectory, "Local directory where the RAD Lab directory has been cloned.")
-	addParameter(ParameterRegion, "Default region for all resources deployed by RAD Lab.")
-	addParameter(ParameterZone, "Default zone for all resources deployed by RAD Lab.")
-	addParameter(ParameterOrganization, "Organization ID where all RAD Lab projects will be created.")
-	addParameter(ParameterAdminBucket, "Name of the Google Cloud Storage bucket that will store all the RAD Lab state files.")
-	addParameter(ParameterAdminProject, "Project ID which is the Admin project for all RAD Lab resources.")
+	addStringValue(ParameterBillingAccount, "Billing account ID that will be attached to all projects related to RAD Lab.")
+	addStringValue(ParameterDirectory, "Local directory where the RAD Lab directory has been cloned.")
+	addStringValue(ParameterRegion, "Default region for all resources deployed by RAD Lab.")
+	addStringValue(ParameterZone, "Default zone for all resources deployed by RAD Lab.")
+	addStringValue(ParameterOrganization, "Organization ID where all RAD Lab projects will be created.")
+	addStringValue(ParameterAdminBucket, "Name of the Google Cloud Storage bucket that will store all the RAD Lab state files.")
+	addStringValue(ParameterAdminProject, "Project ID which is the Admin project for all RAD Lab resources.")
+	addStringValue(ParameterDefaultProjectLabels, "Default labels to add to all RAD Lab projects.")
 }
 
-func addParameter(parameter Parameter, description string) {
+func addStringValue(parameter Parameter, description string) {
 	parameters[parameter.String()] = &configParameter{
 		description: description,
 		value:       fmt.Sprintf("%s", viper.Get(parameter.String())),
@@ -115,7 +119,7 @@ func getConfigParameterNamesAsString(delimiter string) string {
 	return strings.Join(keys, delimiter)
 }
 
-func SetConfigParameter(name, value string) {
+func SetString(name string, value interface{}) {
 	if isAllowed(name) {
 		viper.Set(name, value)
 		err := viper.WriteConfig()
