@@ -5,10 +5,14 @@ import (
 	"cloud.google.com/go/billing/apiv1/billingpb"
 	resourcemanager "cloud.google.com/go/resourcemanager/apiv3"
 	"cloud.google.com/go/resourcemanager/apiv3/resourcemanagerpb"
+	serviceusage "cloud.google.com/go/serviceusage/apiv1"
+	"cloud.google.com/go/serviceusage/apiv1/serviceusagepb"
 	"context"
 	"errors"
+	"fmt"
 	"github.com/debakkerb/rad-lab-cli/config"
 	"google.golang.org/api/iterator"
+	"strings"
 )
 
 /**
@@ -72,7 +76,6 @@ func (ap *AdminProject) Create() error {
 				return errors.New("a project with this name already exists.  please specify a different project id")
 			}
 		}
-
 	}
 
 	projectDetails := &resourcemanagerpb.Project{
@@ -89,10 +92,18 @@ func (ap *AdminProject) Create() error {
 		Project: projectDetails,
 	}
 
-	_, err = projectClient.CreateProject(ctx, projectCreateRequest)
+	createProjectOperation, err := projectClient.CreateProject(ctx, projectCreateRequest)
 	if err != nil {
 		return err
 	}
+
+	project, err := createProjectOperation.Wait(ctx)
+	if err != nil {
+		return err
+	}
+
+	ap.ProjectNumber = strings.SplitAfter(project.Name, "/")[0]
+	ap.ProjectName = project.Name
 
 	billingClient, err := billing.NewCloudBillingClient(ctx)
 	if err != nil {
@@ -101,18 +112,34 @@ func (ap *AdminProject) Create() error {
 	defer billingClient.Close()
 
 	updateBillingInfoRequest := &billingpb.UpdateProjectBillingInfoRequest{
-		Name: ap.ProjectID,
+		Name: fmt.Sprintf("projects/%s", ap.ProjectID),
 	}
 
-	//req := &billingpb.UpdateProjectBillingInfoRequest{
-	//	Name: "project-name",
-	//}
-	//
-	//_, err = billingClient.UpdateProjectBillingInfo(ctx, req)
-	//if err != nil {
-	//	return err
-	//}
-	//
+	_, err = billingClient.UpdateProjectBillingInfo(ctx, updateBillingInfoRequest)
+	if err != nil {
+		return err
+	}
+
+	serviceClient, err := serviceusage.NewClient(ctx)
+	if err != nil {
+		return err
+	}
+	defer serviceClient.Close()
+
+	enableServiceRequest := &serviceusagepb.BatchEnableServicesRequest{
+		Parent: fmt.Sprintf("projects/%s", ap.ProjectID),
+		ServiceIds: []string{
+			"storage.googleapis.com",
+			"cloudbilling.googleapis.com",
+			"iam.googleapis.com",
+		},
+	}
+
+	_, err = serviceClient.BatchEnableServices(ctx, enableServiceRequest)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
