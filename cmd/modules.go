@@ -38,10 +38,9 @@ var createModulesCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create a RAD Lab module",
 	Long:  "This command creates all the necessary RAD Lab resources for a specific module",
-	Args:  cobra.ExactArgs(1),
+	//Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		moduleName := args[0]
-		modules.Create(moduleName)
+		cobra.CheckErr(modules.StartWizard())
 	},
 }
 
