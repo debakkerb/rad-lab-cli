@@ -52,7 +52,8 @@ var adminBucketCreateCmd = &cobra.Command{
 	Short: "Create admin bucket",
 	Long:  "Create the storage bucket for all Admin resources",
 	Run: func(cmd *cobra.Command, args []string) {
-		cobra.CheckErr(admin.CreateAdminBucket())
+		bucketName := cmd.Flag("bucket-name").Value.String()
+		cobra.CheckErr(admin.CreateAdminBucket(bucketName, region, adminProjectID))
 	},
 }
 
@@ -72,4 +73,5 @@ func init() {
 	adminBucketCmd.AddCommand(adminBucketCreateCmd)
 	adminBucketCmd.AddCommand(adminBucketShowCmd)
 
+	adminBucketCreateCmd.Flags().StringP("bucket-name", "n", "", "name of the bucket")
 }
