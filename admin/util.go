@@ -1,7 +1,8 @@
 package admin
 
 import (
-	"github.com/debakkerb/rad-lab-cli/cloud"
+	"errors"
+	"fmt"
 	"github.com/debakkerb/rad-lab-cli/config"
 )
 
@@ -21,21 +22,20 @@ import (
  * limitations under the License.
  */
 
-func CreateAdminBucket(name, region, projectID string) error {
-	bucketName, err := checkConfigValue(name, config.ParameterAdminBucket)
-	if err != nil {
-		return err
+/*
+ * Checks if a parameter has been passed in via the command line.  If not, check the local configuration
+ * for a value.  If neither have been provided, throw an error
+ */
+func checkConfigValue(value string, parameter config.Parameter) (string, error) {
+	if value == "" {
+		configValue := config.Get(parameter)
+		if configValue != "" {
+			return configValue, nil
+		}
+	} else {
+		return value, nil
 	}
 
-	bucketRegion, err := checkConfigValue(region, config.ParameterRegion)
-	if err != nil {
-		return err
-	}
+	return "", errors.New(fmt.Sprintf("error while getting value for parameter %s: not passed via cli nor does it exist in the local config", parameter.String()))
 
-	bucketProjectID, err := checkConfigValue(projectID, config.ParameterAdminProject)
-	if err != nil {
-		return err
-	}
-
-	return cloud.CreateBucket(bucketName, bucketProjectID, bucketRegion)
 }

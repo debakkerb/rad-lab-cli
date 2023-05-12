@@ -48,7 +48,12 @@ var adminBucketCmd = &cobra.Command{
 }
 
 var adminBucketCreateCmd = &cobra.Command{
-	Use: "create",
+	Use:   "create",
+	Short: "Create admin bucket",
+	Long:  "Create the storage bucket for all Admin resources",
+	Run: func(cmd *cobra.Command, args []string) {
+		cobra.CheckErr(admin.CreateAdminBucket())
+	},
 }
 
 var adminBucketShowCmd = &cobra.Command{
