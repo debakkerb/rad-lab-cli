@@ -1,6 +1,8 @@
 package admin
 
 import (
+	"errors"
+	"fmt"
 	"github.com/debakkerb/rad-lab-cli/cloud"
 	"github.com/debakkerb/rad-lab-cli/config"
 )
@@ -22,31 +24,41 @@ import (
  */
 
 func CreateAdminProject(billingAccountID, adminProjectID, parentID string) error {
-	err := checkValues(billingAccountID, adminProjectID, parentID)
+	billingAccount, err := checkValue(billingAccountID, config.ParameterBillingAccount)
+	if err != nil {
+		return err
+	}
+
+	projectID, err := checkValue(adminProjectID, config.ParameterAdminProject)
+	if err != nil {
+		return err
+	}
+
+	parent, err := checkValue(parentID, config.ParameterParentID)
 	if err != nil {
 		return err
 	}
 
 	p := cloud.GoogleProject{
-		ProjectID:        adminProjectID,
-		BillingAccountID: billingAccountID,
-		ParentID:         parentID,
-		ProjectName:      adminProjectID,
+		ProjectID:        projectID,
+		BillingAccountID: billingAccount,
+		ParentID:         parent,
+		ProjectName:      projectID,
 	}
 
 	return p.Create()
 }
 
-func checkValues(billingAccountID, adminProjectID, parentID string) error {
-	if billingAccountID == "" {
-		billingAccountID = config.Get(config.ParameterBillingAccount)
+func checkValue(value string, parameter config.Parameter) (string, error) {
+	if value == "" {
+		configValue := config.Get(parameter)
+		if configValue != "" {
+			return configValue, nil
+		}
+	} else {
+		return value, nil
 	}
 
-	if adminProjectID == "" {
-		adminProjectID = config.Get(config.ParameterAdminProject)
-	}
+	return "", errors.New(fmt.Sprintf("error while getting value for parameter %s: not passed via cli nor does it exist in the local config", parameter.String()))
 
-	if parentID == "" {
-		parentId
-	}
 }
