@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"github.com/debakkerb/rad-lab-cli/validator"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/viper"
 	"log"
@@ -73,6 +74,13 @@ func InitLocalConfiguration() error {
 	fmt.Println("######################################")
 
 	if err := promptForParameter(*parameters[ParameterBillingAccount.String()], func(input string) error {
+		v := validator.New()
+
+		v.Check(input != "", ParameterBillingAccount.String(), "can't be empty")
+
+		if !v.Valid() {
+
+		}
 		return nil
 	}); err != nil {
 
@@ -89,7 +97,7 @@ func InitLocalConfiguration() error {
 
 func promptForParameter(parameter configParameter, validate func(input string) error) error {
 	prompt := promptui.Prompt{
-		Label:    parameter,
+		Label:    parameter.label,
 		Validate: validate,
 	}
 
