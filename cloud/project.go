@@ -57,7 +57,7 @@ func (p *GoogleProject) Create() error {
 		return err
 	}
 
-	err = p.addBilling(ctx)
+	err = p.addBilling(ctx, p.BillingAccountID)
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func (p *GoogleProject) enableServices(ctx context.Context) error {
 	return nil
 }
 
-func (p *GoogleProject) addBilling(ctx context.Context) error {
+func (p *GoogleProject) addBilling(ctx context.Context, billingAccountName string) error {
 	billingClient, err := billing.NewCloudBillingClient(ctx)
 	if err != nil {
 		return err
@@ -103,6 +103,9 @@ func (p *GoogleProject) addBilling(ctx context.Context) error {
 
 	updateBillingInfoRequest := &billingpb.UpdateProjectBillingInfoRequest{
 		Name: fmt.Sprintf("projects/%s", p.ProjectID),
+		ProjectBillingInfo: &billingpb.ProjectBillingInfo{
+			BillingAccountName: fmt.Sprintf("billingAccounts/%s", billingAccountName),
+		},
 	}
 
 	_, err = billingClient.UpdateProjectBillingInfo(ctx, updateBillingInfoRequest)

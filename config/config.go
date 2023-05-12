@@ -198,7 +198,12 @@ func isAllowed(name string) bool {
 }
 
 func Get(name Parameter) string {
-	return fmt.Sprintf("%s", viper.Get(name.String()))
+	value := viper.Get(name.String())
+	if value != nil {
+		return fmt.Sprintf("%s", value)
+	}
+
+	return ""
 }
 
 func Show() {
