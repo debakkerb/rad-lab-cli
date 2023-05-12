@@ -3,8 +3,7 @@
 This repository contains a CLI tool to manage your [RAD Lab](https://github.com/GoogleCloudPlatform/rad-lab) environments.
 
 ## Installation
-
-Download a release from Github
+TODO
 
 ## Commands
 

@@ -17,6 +17,5 @@ package admin
  */
 
 func CreateAdminBucket() error {
-
 	return nil
 }

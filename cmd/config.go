@@ -33,7 +33,9 @@ var initConfigCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialise the local RAD Lab CLI configuration",
 	Long:  "Local configuration, stored in ~/.config/radlab can be setup via this parameter.",
-	Run:   nil,
+	Run: func(cmd *cobra.Command, args []string) {
+		cobra.CheckErr(config.InitLocalConfiguration())
+	},
 }
 
 var setConfigCmd = &cobra.Command{

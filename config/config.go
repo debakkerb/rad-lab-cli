@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"github.com/manifoldco/promptui"
 	"github.com/spf13/viper"
 	"log"
 	"os"
@@ -50,6 +51,8 @@ func (c Parameter) String() string {
 }
 
 type configParameter struct {
+	name        Parameter
+	label       string
 	description string
 	value       string
 }
@@ -63,6 +66,44 @@ func init() {
 	}
 	readConfiguration(configDirectory)
 	initParameters()
+}
+
+func InitLocalConfiguration() error {
+	fmt.Println("Initialising RAD Lab CLI configuration")
+	fmt.Println("######################################")
+
+	if err := promptForParameter(*parameters[ParameterBillingAccount.String()], func(input string) error {
+		return nil
+	}); err != nil {
+
+	}
+
+	if err := promptForParameter(*parameters[ParameterRegion.String()], func(input string) error {
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func promptForParameter(parameter configParameter, validate func(input string) error) error {
+	prompt := promptui.Prompt{
+		Label:    parameter,
+		Validate: validate,
+	}
+
+	value, err := prompt.Run()
+	if err != nil {
+		return err
+	}
+
+	err = SetString(parameter.name.String(), value)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func readConfiguration(configDirectory string) {
@@ -84,19 +125,21 @@ func readConfiguration(configDirectory string) {
 func initParameters() {
 	parameters = make(map[string]*configParameter)
 
-	addStringValue(ParameterBillingAccount, "Billing account ID that will be attached to all projects related to RAD Lab.")
-	addStringValue(ParameterDirectory, "Local directory where the RAD Lab directory has been cloned.")
-	addStringValue(ParameterRegion, "Default region for all resources deployed by RAD Lab.")
-	addStringValue(ParameterZone, "Default zone for all resources deployed by RAD Lab.")
-	addStringValue(ParameterOrganization, "Organization ID where all RAD Lab projects will be created.")
-	addStringValue(ParameterAdminBucket, "Name of the Google Cloud Storage bucket that will store all the RAD Lab state files.")
-	addStringValue(ParameterAdminProject, "Project ID which is the Admin project for all RAD Lab resources.")
-	addStringValue(ParameterDefaultProjectLabels, "Default labels to add to all RAD Lab projects.")
-	addStringValue(ParameterParentID, "Default Parent ID where all RAD Lab resources will be created")
+	addStringValue(ParameterBillingAccount, "Billing Account", "Billing account ID that will be attached to all projects related to RAD Lab.")
+	addStringValue(ParameterDirectory, "RAD Lab Directory", "Local directory where the RAD Lab directory has been cloned.")
+	addStringValue(ParameterRegion, "Region", "Default region for all resources deployed by RAD Lab.")
+	addStringValue(ParameterZone, "Zone", "Default zone for all resources deployed by RAD Lab.")
+	addStringValue(ParameterOrganization, "Organization ID (organizations/123456789)", "Organization ID where all RAD Lab projects will be created.")
+	addStringValue(ParameterAdminBucket, "RAD Lab Admin Storage Bucket", "Name of the Google Cloud Storage bucket that will store all the RAD Lab state files.")
+	addStringValue(ParameterAdminProject, "RAD Lab Admin Project", "Project ID which is the Admin project for all RAD Lab resources.")
+	addStringValue(ParameterDefaultProjectLabels, "Project labels", "Default labels to add to all RAD Lab projects.")
+	addStringValue(ParameterParentID, "Parent ID (organizations/1234, folders/1234)", "Default Parent ID where all RAD Lab resources will be created")
 }
 
-func addStringValue(parameter Parameter, description string) {
+func addStringValue(parameter Parameter, label, description string) {
 	parameters[parameter.String()] = &configParameter{
+		name:        parameter,
+		label:       label,
 		description: description,
 		value:       fmt.Sprintf("%s", viper.Get(parameter.String())),
 	}
