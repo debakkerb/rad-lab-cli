@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/debakkerb/rad-lab-cli/config"
+	"github.com/hashicorp/terraform-config-inspect/tfconfig"
 	"os"
-	"regexp"
 	"strings"
 )
 
@@ -14,11 +14,11 @@ type Module struct {
 	Path string
 }
 
-type TerraformVariable struct {
-	VariableName string
-	Description  string
-	Type         string
-	Default      string
+type Variable struct {
+	Name        string
+	Value       interface{}
+	Type        string
+	Description string
 }
 
 func StartWizard() error {
@@ -31,16 +31,30 @@ func StartWizard() error {
 	}
 
 	for _, module := range modules {
-		variables, err := getVariables(module)
+		_, err := getVariables(module)
 		if err != nil {
 			return err
 		}
-
-		for _, variable := range variables {
-			fmt.Println(variable.VariableName)
-		}
 	}
 	return nil
+}
+
+func getVariables(module *Module) (interface{}, error) {
+	moduleDetails, _ := tfconfig.LoadModule(module.Path)
+
+	var variables []*Variable
+
+	for _, value := range moduleDetails.Variables {
+		v := &Variable{
+			Name:        value.Name,
+			Description: value.Description,
+			Type:        value.Type,
+		}
+
+		variables = append(variables, v)
+	}
+
+	return nil, nil
 }
 
 func getModuleNames() ([]*Module, error) {
@@ -87,32 +101,4 @@ func moduleHumanReadableName(filePath string) (string, error) {
 	}
 
 	return "", nil
-}
-
-func getVariables(module *Module) ([]*TerraformVariable, error) {
-	fileContent, err := os.ReadFile(fmt.Sprintf("%s/%s", module.Path, "variables.tf"))
-	if err != nil {
-		return nil, err
-	}
-
-	variables := parseVariables(string(fileContent))
-	for _, variable := range variables {
-		fmt.Println(variable.VariableName)
-	}
-	return nil, nil
-}
-
-func parseVariables(fileContent string) []*TerraformVariable {
-	pattern := regexp.MustCompile(`variable\s+"([^"]+)"\s+{([^}]+)}`)
-	matches := pattern.FindAllStringSubmatch(fileContent, -1)
-	var variables []*TerraformVariable
-
-	for _, match := range matches {
-		variableName := match[1]
-		variables = append(variables, &TerraformVariable{
-			VariableName: variableName,
-		})
-	}
-
-	return variables
 }
