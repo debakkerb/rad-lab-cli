@@ -25,17 +25,28 @@ func StartWizard() error {
 		return err
 	}
 
-	fmt.Printf("You chose %s", result)
+	getMissingValues(modules[result])
 
 	return nil
 }
 
-func getModuleNames(modules []*terraform.Module) []string {
-	var moduleNames []string
+func getModuleNames(modules map[string]*terraform.Module) []string {
+	moduleNames := make([]string, 0, len(modules))
 
 	for _, value := range modules {
 		moduleNames = append(moduleNames, value.Name)
 	}
 
 	return moduleNames
+}
+
+func getMissingValues(module *terraform.Module) map[string]interface{} {
+
+	for _, value := range module.Variables {
+		//if value.Value == nil {
+			fmt.Printf("%s: %s\n", value.Name, value.Value)
+		//}
+	}
+
+	return nil
 }

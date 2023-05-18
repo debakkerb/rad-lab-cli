@@ -1,6 +1,6 @@
 # User Guide
 
-* (Configuration)[#configuration]
+* [Configuration](#configuration)
 
 ## Configuration
 

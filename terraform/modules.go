@@ -25,13 +25,13 @@ import (
  * limitations under the License.
  */
 
-func GetModules() ([]*Module, error) {
+func GetModules() (map[string]*Module, error) {
 	moduleDirectories, err := os.ReadDir(fmt.Sprintf("%s/%s", config.Get(config.ParameterDirectory), "modules"))
 	if err != nil {
 		return nil, err
 	}
 
-	var modules []*Module
+	modules := make(map[string]*Module)
 	for _, module := range moduleDirectories {
 		fullPath := fmt.Sprintf("%s/%s/%s", config.Get(config.ParameterDirectory), "modules", module.Name())
 		moduleName, err := moduleHumanReadableName(fullPath)
@@ -44,11 +44,11 @@ func GetModules() ([]*Module, error) {
 			return nil, err
 		}
 
-		modules = append(modules, &Module{
+		modules[formatModuleName(moduleName)] = &Module{
 			Name:      formatModuleName(moduleName),
 			Path:      fullPath,
 			Variables: variables,
-		})
+		}
 	}
 
 	return modules, nil
