@@ -2,6 +2,7 @@ package modules
 
 import (
 	"fmt"
+	"github.com/debakkerb/rad-lab-cli/config"
 	"github.com/debakkerb/rad-lab-cli/terraform"
 	"github.com/manifoldco/promptui"
 	"sort"
@@ -23,7 +24,7 @@ import (
  * limitations under the License.
  */
 
-func StartWizard() error {
+func StartWizard(variablesFile string) error {
 	fmt.Println("Create a module instance")
 	fmt.Println("#########################")
 
@@ -41,6 +42,9 @@ func StartWizard() error {
 	if err != nil {
 		return err
 	}
+
+	billingAccountID := config.Get(config.ParameterBillingAccount)
+	parentID := config.Get(config.ParameterParentID)
 
 	return nil
 }

@@ -25,13 +25,11 @@ var (
 	billingAccount  string
 	adminProjectID  string
 	parentID        string
-	adminBucketName string
 	region          string
 )
 
 var rootCmd = &cobra.Command{
 	Use:     "radlab",
-	Aliases: []string{"rl"},
 	Short:   "Manage Rad Lab deployments, incl. UI",
 	Long:    `Manage RAD Lab deployments on Google Cloud`,
 }

@@ -21,6 +21,10 @@ import (
  * limitations under the License.
  */
 
+var (
+	variablesFile string
+)
+
 var modulesCmd = &cobra.Command{
 	Use:   "modules",
 	Short: "Manage RAD Lab modules",
@@ -40,7 +44,7 @@ var createModulesCmd = &cobra.Command{
 	Long:  "This command creates all the necessary RAD Lab resources for a specific module",
 	//Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		cobra.CheckErr(modules.StartWizard())
+		cobra.CheckErr(modules.StartWizard(variablesFile))
 	},
 }
 
@@ -50,6 +54,8 @@ var deleteModulesCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(modulesCmd)
+
+	modulesCmd.PersistentFlags().StringVarP(&variablesFile, "variables", "v", "", "specify a key value file for the variables")
 
 	modulesCmd.AddCommand(listModulesCmd)
 	modulesCmd.AddCommand(createModulesCmd)
